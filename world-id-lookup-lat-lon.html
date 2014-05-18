@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+		<title>World ID Lookup</title>
+		<link rel="stylesheet" href="http://js.arcgis.com/3.9/js/esri/css/esri.css">
+		<style>
+			html, body {
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				background-color: #FFF;
+				overflow: hidden;
+				font-family: 'Helvetica Neue', sans-serif;
+				font-weight: 200;
+				padding: 20px;
+			}
+			form {
+				width: 300px;
+				float: left;
+			}
+			label {
+				display: block;
+			}
+			#map {
+				float: left;
+				width: 300px;
+				height: 300px;
+			}
+			#info {
+				float: left;
+				font-size: 30px;
+			}
+			#info:before {
+				content: 'WorldID: ';
+			}
+		</style>
+		<script src="http://js.arcgis.com/3.9/"></script>
+		<script>
+
+			require([
+				//loading required libraries from the ESRI API
+				"esri/map",
+				"esri/tasks/query",
+				"esri/tasks/QueryTask",
+				"esri/geometry/Point",
+				"esri/graphic",
+		        "esri/layers/GraphicsLayer",
+                "esri/symbols/SimpleMarkerSymbol",
+				"dojo/domReady!"],
+				function(Map, Query, QueryTask, Point, Graphic, GraphicsLayer, SimpleMarkerSymbol) {
+
+					//throwing a simple map on the screen
+					var map = new Map("map", {
+						basemap: "topo",
+						center: [4.9000, 52.3667], //longitude, latitude
+						zoom: 6
+					});
+
+					//creating a queryTask, location of the Omega Zone data that will be queried
+					//roughly comparable to a remote sql table
+					var queryTask = new QueryTask("https://services1.arcgis.com/DnZ5orhsUGGdUZ3h/ArcGIS/rest/services/OZ2014/FeatureServer/0");
+
+					//bind onClick event to the map
+					dojo.connect(document.getElementById('coordinates'), "onsubmit", function(ev) {
+
+						//hijack the form submitting
+						ev.preventDefault();
+
+						//creating a new query
+						var query = new Query(),
+							//get lat + lon from form
+							lat = parseFloat(document.getElementById('lat').value),
+							lon = parseFloat(document.getElementById('lon').value),
+							//create point form lat lon
+							point = new Point([lat, lon]);
+
+
+						//add nice little marker to the point
+						var graphicsLayer = new GraphicsLayer();
+						graphicsLayer.add(new Graphic(point, new SimpleMarkerSymbol().setColor('red').setSize(20)));
+						map.addLayer(graphicsLayer);
+
+						//center map at point
+						map.centerAt(point);
+
+						//select the fields we want
+						query.outFields = ['WorldID']; //see full list at https://services1.arcgis.com/DnZ5orhsUGGdUZ3h/ArcGIS/rest/services/OZ2014/FeatureServer/0
+						//adding the map point created from the lat and long
+						query.geometry = point ;
+
+						//execute the query
+						queryTask.execute(query, function(result){
+
+							//putting the world id in the #info div
+							document.getElementById('info').innerHTML = result.features[0].attributes.WorldID ;
+
+						});
+
+						return false ;
+
+					}, false) ;
+
+				}
+			);
+		</script>
+	</head>
+
+	<body>
+
+		<form id="coordinates">
+
+			<label for="lat">Latitude</label>
+			<input type="text" id="lat" value="4.9000">
+			
+			<label for="lon">Longitude</label>
+			<input type="text" id="lon" value="52.3667">
+
+			<input type="submit" value="Get World ID">
+
+		</form>
+
+		<div id="map"></div>
+
+		<div id="info"></div>
+
+	</body>
+
+</html>

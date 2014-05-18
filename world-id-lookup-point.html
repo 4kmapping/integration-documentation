@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+		<title>World ID Lookup</title>
+		<link rel="stylesheet" href="http://js.arcgis.com/3.9/js/esri/css/esri.css">
+		<style>
+			html, body {
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				background-color: #FFF;
+				overflow: hidden;
+				font-family: 'Helvetica Neue', sans-serif;
+				font-weight: 200;
+			}
+			nav {
+				position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+				height: 25px;
+				padding-top: 2px;
+				background-color: #343434;
+				color: #e9e9e9;
+				text-align: center;
+			}
+			#map {
+				position: absolute;
+					top: 25px;
+					left: 0;
+					right: 0;
+					bottom: 0;
+			}
+		</style>
+		<script src="http://js.arcgis.com/3.9/"></script>
+		<script>
+
+			require([
+				//loading required libraries from the ESRI API
+				"esri/map",
+				"esri/tasks/query",
+				"esri/tasks/QueryTask",
+				"dojo/domReady!"],
+				function(Map, Query, QueryTask) {
+
+					// throwing a simple map on the screen
+					var map = new Map("map", {
+						basemap: "topo",
+						center: [4.9000, 52.3667], // longitude, latitude
+						zoom: 6
+					});
+
+					// creating a queryTask, location of the Omega Zone data that will be queried
+					// roughly comparable to a remote sql table
+					var queryTask = new QueryTask("https://services1.arcgis.com/DnZ5orhsUGGdUZ3h/ArcGIS/rest/services/OZ2014/FeatureServer/0");
+
+					// bind onClick event to the map
+					dojo.connect(map, 'onClick', function(ev){
+
+						// creating a new query
+						var query = new Query();
+						// select the fields we want
+						query.outFields = ['WorldID']; //see full list at https://services1.arcgis.com/DnZ5orhsUGGdUZ3h/arcgis/rest/services/WorldMap1/FeatureServer/2
+						// adding the map point we got from the click event
+						query.geometry = ev.mapPoint;
+
+						// execute the query
+						queryTask.execute(query, function(result){
+							// putting the world id in the top bar
+							document.getElementById('info').innerHTML = result.features[0].attributes.WorldID ;
+						});
+
+					}) ;
+
+				}
+			);
+		</script>
+	</head>
+
+	<body>
+		<nav id="info">Click anywhere on the map to get its World ID</nav>
+		<div id="map"></div>
+	</body>
+
+</html>

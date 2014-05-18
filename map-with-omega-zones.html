@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+	<title>Simple Map</title>
+	<link rel="stylesheet" href="http://js.arcgis.com/3.9/js/esri/css/esri.css">
+	<style>
+	  html, body, #map {
+		height: 100%;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+	  }
+	  body {
+		background-color: #FFF;
+		overflow: hidden;
+	  }
+	</style>
+	<script src="http://js.arcgis.com/3.9/"></script>
+	<script>
+		var map;
+
+		require(["esri/map", "esri/layers/FeatureLayer", "dojo/domReady!"], function(Map, FeatureLayer) {
+
+		map = new Map("map", {
+			basemap: "topo",
+			center: [4.9000, 52.3667], // longitude, latitude
+			zoom: 6
+		});
+
+		var omegaZones = FeatureLayer('https://services1.arcgis.com/DnZ5orhsUGGdUZ3h/ArcGIS/rest/services/OZ2014/FeatureServer/0');
+
+		map.addLayer(omegaZones);
+
+		});
+	</script>
+  </head>
+
+  <body>
+	<div id="map"></div>
+  </body>
+</html>
